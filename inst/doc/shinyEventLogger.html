@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Kamil Wais" />
+
+<meta name="date" content="2019-02-11" />
+
+<title>Introduction to Logging Events in Shiny Apps</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to Logging Events in Shiny Apps</h1>
+<h4 class="author"><em>Kamil Wais</em></h4>
+<h4 class="date"><em>2019-02-11</em></h4>
+
+
+
+<blockquote>
+<p>R package <code>shinyEventLogger</code> is a logging framework especially useful for developing, testing and debugging complex shiny apps.</p>
+</blockquote>
+<div id="start-logging" class="section level2">
+<h2>Start logging</h2>
+<p>To be able to use logging inside your shiny app you need to load both <code>shiny</code> and <code>shinyEventLogger</code> packages.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(shiny)
+<span class="kw">library</span>(shinyEventLogger)</code></pre></div>
+<div id="logging-to-r-console" class="section level3">
+<h3>Logging to R console</h3>
+<p>Before logging anything you need to use <code>set_logging()</code> to tell the logger where you want to log events from your app. The <code>set_logging()</code> function should be used before any <code>log_*</code> function calls, possibly outside the shiny <code>server</code> and <code>ui</code> functions.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()</code></pre></div>
+<p>You should be able to see in the R console the following messages:</p>
+<pre><code>Logging to R console:          ENABLED
+Logging to JavaScript console: ENABLED
+Logging to a file:             disabled
+Logging to a database:         disabled</code></pre>
+<p>To be able to log session specific events you need to use <code>set_logging_session()</code> at the beginning of the <code>serwer</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>() 
+ }
+)</code></pre></div>
+<p>Logging to R console is enabled so you can log your first event.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>() 
+    <span class="kw">log_event</span>(<span class="st">&quot;Hello World!&quot;</span>)
+ }
+)</code></pre></div>
+<p>In the R console you should be able to see something like this:</p>
+<pre><code>|#1|EVENT|Hello World!|FIRED|</code></pre>
+</div>
+<div id="logging-to-js-console" class="section level3">
+<h3>Logging to JS console</h3>
+<p>By default logging will be done to both the R console and to browser JavaScript (JS) console. Logging to JS console needs also registering some JavaScript code, which can be done with the <code>log_init()</code> inside <code>ui</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(
+    <span class="kw">log_init</span>()
+  ),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>() 
+    <span class="kw">log_event</span>(<span class="st">&quot;Hello World!&quot;</span>)
+    <span class="kw">log_event</span>(<span class="st">&quot;See browser JavaScript console (CTRL + SHIFT + I)&quot;</span>)
+ }
+)</code></pre></div>
+<p>Now, you should be able to see your logged events both in the R console and the browser JS console which can be opened by (CTRL + SHIFT + I) shortcut.</p>
+</div>
+</div>
+<div id="event-structure" class="section level2">
+<h2>Event structure</h2>
+<p>Each event instance has a name, type, and status defined by a user. It could also have some additional parameters which are logged together with the event as a list. Each event has also an event counter - a number that increments every time any event is fired in the given session. Using <code>set_logging_session()</code> resets the counter.</p>
+<p>Let’s log an event with some unusual parameters.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(<span class="kw">log_init</span>()),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_event</span>(<span class="st">&quot;Event body&quot;</span>, 
+              <span class="dt">name   =</span> <span class="st">&quot;Event name&quot;</span>,
+              <span class="dt">type   =</span> <span class="st">&quot;NEWTYPE&quot;</span>, 
+              <span class="dt">status =</span> <span class="st">&quot;NEWSTATUS&quot;</span>, 
+              <span class="dt">params =</span> <span class="kw">list</span>(<span class="st">&quot;param_1&quot;</span> =<span class="st"> &quot;param_1_value&quot;</span>))
+ }
+)</code></pre></div>
+<p>In R &amp; JS consoles the result you are able to see is a multi-line output with event meta-data in the first line, event parameters in the second line, and event body in the following line. All lines have the same event counter at the beginning.</p>
+<pre><code>|#1|NEWTYPE|Event name|NEWSTATUS|
+|#1|PARAMS|list(param_1 = &quot;param_1_value&quot;)
+|#1|Event body</code></pre>
+</div>
+<div id="logging-different-event-types" class="section level2">
+<h2>Logging different event types</h2>
+<p>There are several pre-defined event types. Each type has its own wrapper function for easier and faster access. Currently, the following logging function are available:</p>
+<ul>
+<li><code>log_event()</code></li>
+<li><code>log_value()</code></li>
+<li><code>log_output()</code></li>
+<li><code>log_test()</code>,</li>
+<li><code>log_message()</code>, <code>log_warning()</code>, and <code>log_error()</code></li>
+<li><code>log_started()</code> and <code>log_done()</code>.</li>
+</ul>
+<div id="generic-events" class="section level3">
+<h3>Generic events</h3>
+<p><code>log_event()</code> is a generic function for logging all kinds of events. Default event type is <code>EVENT</code> and event status is <code>FIRED</code>.</p>
+<p>If there is no event name defined, objects passed to <code>...</code> argument are evaluated and coerced into event name.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(<span class="kw">log_init</span>()),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_event</span>(<span class="st">&quot;Event body&quot;</span>, <span class="dt">name   =</span> <span class="st">&quot;Event name&quot;</span>)
+    <span class="kw">log_event</span>(<span class="st">&quot;Event without name&quot;</span>)
+    <span class="kw">log_event</span>(<span class="kw">paste</span>(<span class="st">&quot;Event&quot;</span>, <span class="st">&quot;without&quot;</span>, <span class="st">&quot;name&quot;</span>))
+    <span class="kw">log_event</span>(<span class="st">&quot;Event&quot;</span>, <span class="st">&quot;without&quot;</span>, <span class="st">&quot;name&quot;</span>)
+ }
+)</code></pre></div>
+<p>So events 2, 3, and 4 are logged with the same event name, although they have different value of event counter.</p>
+<pre><code>|#1|EVENT|Event name|FIRED|
+|#1|Event body
+|#2|EVENT|Event without name|FIRED|
+|#3|EVENT|Event without name|FIRED|
+|#4|EVENT|Event without name|FIRED|</code></pre>
+</div>
+<div id="values" class="section level3">
+<h3>Values</h3>
+<p>With <code>log_value()</code> you can log current value of a non-reactive function or reactive value or expression (inside reactive context).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(
+    <span class="kw">log_init</span>(),
+    <span class="kw">selectInput</span>(<span class="st">&quot;number&quot;</span>, <span class="st">&quot;Select number&quot;</span>, <span class="dt">choices =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="dt">selected =</span> <span class="dv">2</span>)
+    ),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_value</span>(<span class="kw">NROW</span>(mtcars))
+    <span class="kw">observe</span>({
+      <span class="kw">log_value</span>(input<span class="op">$</span>number)
+    })
+ }
+)</code></pre></div>
+<pre><code>|#1|VALUE|NROW(mtcars)|FIRED|
+|#1|32
+|#2|VALUE|input$number|FIRED|
+|#2|2</code></pre>
+</div>
+<div id="outputs" class="section level3">
+<h3>Outputs</h3>
+<p>With <code>log_output()</code> you can capture the output which is the result of function evaluation. It is especially useful for logging multi-line outputs of irregular structure.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(<span class="kw">log_init</span>()),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_output</span>(<span class="kw">head</span>(mtcars))
+    <span class="kw">log_output</span>(<span class="kw">str</span>(mtcars))
+ }
+)</code></pre></div>
+<pre><code>|#1|OUTPUT|head(mtcars)|FIRED|
+|#1|                   mpg cyl disp  hp drat    wt  qsec vs am gear carb
+|#1|Mazda RX4         21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
+|#1|Mazda RX4 Wag     21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
+|#1|Datsun 710        22.8   4  108  93 3.85 2.320 18.61  1  1    4    1
+|#1|Hornet 4 Drive    21.4   6  258 110 3.08 3.215 19.44  1  0    3    1
+|#1|Hornet Sportabout 18.7   8  360 175 3.15 3.440 17.02  0  0    3    2
+|#1|Valiant           18.1   6  225 105 2.76 3.460 20.22  1  0    3    1
+|#2|OUTPUT|str(mtcars)|FIRED|
+|#2|'data.frame':   32 obs. of  11 variables:
+|#2| $ mpg : num  21 21 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 ...
+|#2| $ cyl : num  6 6 4 6 8 6 8 4 4 6 ...
+|#2| $ disp: num  160 160 108 258 360 ...
+|#2| $ hp  : num  110 110 93 110 175 105 245 62 95 123 ...
+|#2| $ drat: num  3.9 3.9 3.85 3.08 3.15 2.76 3.21 3.69 3.92 3.92 ...
+|#2| $ wt  : num  2.62 2.88 2.32 3.21 3.44 ...
+|#2| $ qsec: num  16.5 17 18.6 19.4 17 ...
+|#2| $ vs  : num  0 0 1 1 0 1 0 1 1 1 ...
+|#2| $ am  : num  1 1 1 0 0 0 0 0 0 0 ...
+|#2| $ gear: num  4 4 4 3 3 3 3 4 4 4 ...
+|#2| $ carb: num  4 4 1 1 2 1 4 2 2 4 ...</code></pre>
+</div>
+<div id="unit-tests" class="section level3">
+<h3>Unit tests</h3>
+<p>With <code>log_test()</code> you can log a unit test placed inside your shiny app.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(<span class="kw">log_init</span>()),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_test</span>(testthat<span class="op">::</span><span class="kw">expect_true</span>(<span class="ot">TRUE</span>))
+    <span class="kw">log_test</span>(testthat<span class="op">::</span><span class="kw">expect_true</span>(<span class="ot">FALSE</span>))
+    <span class="kw">log_test</span>(testthat<span class="op">::</span><span class="kw">expect_true</span>(<span class="ot">TRUE</span>))
+ }
+)</code></pre></div>
+<pre><code>|#1|TEST|testthat::expect_true(TRUE)|SUCCESS|
+|#2|TEST|testthat::expect_true(FALSE)|ERROR|
+|#2|Error: FALSE isn't true.
+|#3|TEST|testthat::expect_true(TRUE)|SUCCESS|</code></pre>
+<p>As you can see, in case a unit test is not successful, error is raised silently and doesn’t break the app.</p>
+</div>
+<div id="diagnostic-messages" class="section level3">
+<h3>Diagnostic messages</h3>
+<p>For classic diagnostic messages you can use wrappers like <code>log_message()</code>, <code>log_warning()</code>, and <code>log_error()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(<span class="kw">log_init</span>()),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_message</span>(<span class="st">&quot;Example of a message&quot;</span>)
+    <span class="kw">log_warning</span>(<span class="st">&quot;Example of a warning&quot;</span>)
+    <span class="kw">log_error</span>(<span class="st">&quot;Example of an error&quot;</span>)
+ }
+)</code></pre></div>
+<p>They will log message with appropriate type first, and then use <code>message()</code>, <code>warning()</code>, or <code>stop()</code>. In case of <code>log_error()</code> this can break the running app.</p>
+<pre><code>|#1|MESSAGE|Example of a message|FIRED|
+Example of a message
+|#2|WARNING|Example of a warning|FIRED|
+Warning in log_warning(&quot;Example of a warning&quot;) : Example of a warning
+|#3|ERROR|Example of an error|FIRED|
+Warning: Error in log_error: Example of an error
+  52: stop
+  51: log_error [...]
+  50: server [#7]
+Error in log_error(&quot;Example of an error&quot;) : Example of an error</code></pre>
+</div>
+</div>
+<div id="timing-events" class="section level2">
+<h2>Timing events</h2>
+<p>Events can last for some time. You can start an instance of an event with <code>log_started()</code> and log when event finishes with <code>log_done()</code>. This can be used for quick timing an event and save into <code>secs</code> parameter how many seconds passed since the event started.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>(<span class="dt">js_console =</span> <span class="ot">FALSE</span>)
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> shiny<span class="op">::</span><span class="kw">fluidPage</span>(<span class="kw">log_init</span>()),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">options</span>(<span class="dt">digits.secs =</span> <span class="dv">6</span>)
+    <span class="kw">set_logging_session</span>()
+      <span class="kw">log_started</span>(<span class="st">&quot;Event 1&quot;</span>)
+        <span class="kw">log_event</span>(<span class="st">&quot;Sleeping for 3 secs...&quot;</span>)
+        <span class="kw">Sys.sleep</span>(<span class="dv">3</span>)
+      <span class="kw">log_done</span>(<span class="st">&quot;Event 1&quot;</span>)
+  }
+)</code></pre></div>
+<pre><code>|#1|EVENT|Event 1|STARTED|
+|#2|EVENT|Sleeping for 3 secs...|FIRED|
+|#1|EVENT|Event 1|DONE|
+|#1|PARAMS|list(secs = 3.03)</code></pre>
+<p>Please note, that instances of the same event have the same value of event counter.</p>
+<p>Events can be also nested within other, more general events.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>(<span class="dt">js_console =</span> <span class="ot">FALSE</span>)
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> shiny<span class="op">::</span><span class="kw">fluidPage</span>(),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_started</span>(<span class="st">&quot;Event 1&quot;</span>)
+      <span class="kw">Sys.sleep</span>(<span class="dv">1</span>)
+        <span class="kw">log_started</span>(<span class="st">&quot;Event 2&quot;</span>)
+        <span class="kw">Sys.sleep</span>(<span class="dv">1</span>)
+        <span class="kw">log_done</span>(<span class="st">&quot;Event 2&quot;</span>)
+      <span class="kw">Sys.sleep</span>(<span class="dv">1</span>)
+    <span class="kw">log_done</span>(<span class="st">&quot;Event 1&quot;</span>)
+  }
+)</code></pre></div>
+<pre><code>|#1|EVENT|Event 1|STARTED|
+|#2|EVENT|Event 2|STARTED|
+|#2|EVENT|Event 2|DONE|
+|#2|PARAMS|list(secs = 1.02)
+|#1|EVENT|Event 1|DONE|
+|#1|PARAMS|list(secs = 3.03)</code></pre>
+</div>
+<div id="logging-events-with-parameters" class="section level2">
+<h2>Logging events with parameters</h2>
+<p>There are several ways how you can log events with additional parameters. You can use:</p>
+<ul>
+<li>event-specific parameters,</li>
+<li>scope-specific parameters,</li>
+<li>app-wide parameters.</li>
+</ul>
+<div id="event-specific-parameters" class="section level3">
+<h3>Event-specific parameters</h3>
+<p>Each event can be logged with a list of additional parameters.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(
+    <span class="kw">log_init</span>(),
+    <span class="kw">selectInput</span>(<span class="st">&quot;number&quot;</span>, <span class="st">&quot;Select number&quot;</span>, <span class="dt">choices =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="dt">selected =</span> <span class="dv">2</span>)
+    ),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_event</span>(<span class="st">&quot;mtcars&quot;</span>, <span class="dt">params =</span> <span class="kw">list</span>(<span class="dt">dim =</span> <span class="kw">dim</span>(mtcars)))
+    <span class="kw">observe</span>({
+      <span class="kw">log_event</span>(<span class="st">&quot;number changed&quot;</span>, <span class="dt">params =</span> <span class="kw">list</span>(<span class="dt">number =</span> input<span class="op">$</span>number))
+    })
+ }
+)</code></pre></div>
+<pre><code>|#1|EVENT|mtcars|FIRED|
+|#1|PARAMS|list(dim = c(32L, 11L))
+|#2|EVENT|number changed|FIRED|
+|#2|PARAMS|list(number = &quot;2&quot;)</code></pre>
+</div>
+<div id="scope-specific-parameters" class="section level3">
+<h3>Scope-specific parameters</h3>
+<p>If you have several events within the same scope (for example, within the same observer) you can set some additional parameters that are common to all those events. Using <code>log_params()</code> allows you to define those parameters only once, and not to repeat the same list of parameters with each event.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(
+    <span class="kw">log_init</span>(),
+    <span class="kw">selectInput</span>(<span class="st">&quot;number&quot;</span>, <span class="st">&quot;Select number&quot;</span>, <span class="dt">choices =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="dt">selected =</span> <span class="dv">2</span>)
+    ),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>()
+    <span class="kw">log_event</span>(<span class="st">&quot;mtcars&quot;</span>, <span class="dt">params =</span> <span class="kw">list</span>(<span class="dt">dim =</span> <span class="kw">dim</span>(mtcars)))
+    <span class="kw">observe</span>({
+      <span class="kw">log_params</span>(<span class="dt">number =</span> input<span class="op">$</span>number)
+      <span class="kw">log_event</span>(<span class="st">&quot;number changed&quot;</span>)
+      <span class="kw">log_event</span>(<span class="st">&quot;number changed indeed&quot;</span>)
+    })
+  }
+)</code></pre></div>
+<pre><code>|#1|EVENT|mtcars|FIRED|
+|#1|PARAMS|list(dim = c(32L, 11L))
+|#2|EVENT|number changed|FIRED|
+|#2|PARAMS|list(number = &quot;2&quot;)
+|#3|EVENT|number changed indeed|FIRED|
+|#3|PARAMS|list(number = &quot;2&quot;)</code></pre>
+</div>
+<div id="session-wide-parameters" class="section level3">
+<h3>Session-wide parameters</h3>
+<p>With <code>set_logging_session()</code> you can set event parameters that are common for all events within the same shiny session.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>()
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(
+    <span class="kw">log_init</span>(),
+    <span class="kw">selectInput</span>(<span class="st">&quot;number&quot;</span>, <span class="st">&quot;Select number&quot;</span>, <span class="dt">choices =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="dt">selected =</span> <span class="dv">2</span>)
+    ),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>(<span class="dt">unique_id =</span> <span class="kw">runif</span>(<span class="dv">1</span>))
+    <span class="kw">log_event</span>(<span class="st">&quot;mtcars&quot;</span>, <span class="dt">params =</span> <span class="kw">list</span>(<span class="dt">dim =</span> <span class="kw">dim</span>(mtcars)))
+    <span class="kw">observe</span>({
+      <span class="kw">log_params</span>(<span class="dt">number =</span> input<span class="op">$</span>number)
+      <span class="kw">log_event</span>(<span class="st">&quot;number changed&quot;</span>)
+      <span class="kw">log_event</span>(<span class="st">&quot;number changed indeed&quot;</span>)
+    })
+  }
+)</code></pre></div>
+<pre><code>|#1|EVENT|mtcars|FIRED|
+|#1|PARAMS|list(dim = c(32L, 11L), unique_id = 0.0305952038615942)
+|#2|EVENT|number changed|FIRED|
+|#2|PARAMS|list(number = &quot;2&quot;, unique_id = 0.0305952038615942)
+|#3|EVENT|number changed indeed|FIRED|
+|#3|PARAMS|list(number = &quot;2&quot;, unique_id = 0.0305952038615942)</code></pre>
+</div>
+<div id="app-wide-parameters" class="section level3">
+<h3>App-wide parameters</h3>
+<p>With <code>set_logging()</code> you can also set event parameters that are common for all events in the app.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set_logging</span>(
+  <span class="dt">logger_ver =</span> <span class="kw">as.character</span>(<span class="kw">packageVersion</span>(<span class="st">&quot;ShinyEventLogger&quot;</span>)),
+  <span class="dt">build =</span> 123L
+)
+<span class="kw">shinyApp</span>(
+  <span class="dt">ui =</span> <span class="kw">fluidPage</span>(
+    <span class="kw">log_init</span>(),
+    <span class="kw">selectInput</span>(<span class="st">&quot;number&quot;</span>, <span class="st">&quot;Select number&quot;</span>, <span class="dt">choices =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="dt">selected =</span> <span class="dv">2</span>)
+    ),
+  <span class="dt">server =</span> <span class="cf">function</span>(input, output) {
+    <span class="kw">set_logging_session</span>(<span class="dt">unique_id =</span> <span class="kw">runif</span>(<span class="dv">1</span>))
+    <span class="kw">log_event</span>(<span class="st">&quot;mtcars&quot;</span>, <span class="dt">params =</span> <span class="kw">list</span>(<span class="dt">dim =</span> <span class="kw">dim</span>(mtcars)))
+    <span class="kw">observe</span>({
+      <span class="kw">log_params</span>(<span class="dt">number =</span> input<span class="op">$</span>number)
+      <span class="kw">log_event</span>(<span class="st">&quot;number changed&quot;</span>)
+      <span class="kw">log_event</span>(<span class="st">&quot;number changed indeed&quot;</span>)
+    })
+  }
+)</code></pre></div>
+<pre><code>|#1|EVENT|mtcars|FIRED|
+|#1|PARAMS|list(dim = c(32L, 11L), unique_id = 0.891702918568626, build = 123L, logger_ver = &quot;0.0.0.9100&quot;)
+|#2|EVENT|number changed|FIRED|
+|#2|PARAMS|list(number = &quot;2&quot;, unique_id = 0.891702918568626, build = 123L, logger_ver = &quot;0.0.0.9100&quot;)
+|#3|EVENT|number changed indeed|FIRED|
+|#3|PARAMS|list(number = &quot;2&quot;, unique_id = 0.891702918568626, build = 123L, logger_ver = &quot;0.0.0.9100&quot;)</code></pre>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

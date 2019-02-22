@@ -1,0 +1,10 @@
+name: demoapp
+title:
+username:
+account: kalimu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 636998
+bundleId: 1842874
+url: https://kalimu.shinyapps.io/demoapp/
+when: 1548737152.14612
